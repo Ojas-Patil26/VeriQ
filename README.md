@@ -70,6 +70,8 @@ You can extend this base to add:
 
 ## 4. Architecture
 
+![alt text](Gemini_Generated_Image_v7tldov7tldov7tl.png)
+
 ### 4.1 Agent Roles
 
 All agents live in `agent.py`.
