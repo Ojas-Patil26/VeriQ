@@ -74,13 +74,13 @@ You can extend this base to add:
 
 All agents live in `agent.py`.
 
-| Agent Name              | Role                                                      |
-|-------------------------|-----------------------------------------------------------|
-| `data_quality_guardian` | Root agent (VeriQ coordinator) – user-facing, orchestrates others |
-| `ingestion_agent`       | Lists metrics, inspects basic metric + lineage context   |
-| `anomaly_detection_agent` | Runs anomaly detection on a single metric             |
-| `root_cause_agent`      | Proposes likely root causes using schema + changelog     |
-| `incident_report_agent` | Turns findings into a clean incident report              |
+|         Agent Name        |                      Role                                         |
+|---------------------------|-------------------------------------------------------------------|
+| `data_quality_guardian`   | Root agent (VeriQ coordinator) – user-facing, orchestrates others |
+| `ingestion_agent`         | Lists metrics, inspects basic metric + lineage context            |
+| `anomaly_detection_agent` | Runs anomaly detection on a single metric                         |
+| `root_cause_agent`        | Proposes likely root causes using schema + changelog              |
+| `incident_report_agent`   | Turns findings into a clean incident report                       |
 
 ### 4.2 Tools
 
