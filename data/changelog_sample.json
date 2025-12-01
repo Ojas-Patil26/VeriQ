@@ -1,0 +1,14 @@
+[
+  {
+    "date": "2025-11-14",
+    "component": "events",
+    "type": "schema_change",
+    "description": "Started dropping events missing user_id."
+  },
+  {
+    "date": "2025-11-15",
+    "component": "etl_jobs.daily_active_users",
+    "type": "pipeline_deploy",
+    "description": "Updated logic to exclude internal test traffic."
+  }
+]

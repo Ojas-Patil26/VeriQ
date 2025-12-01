@@ -1,0 +1,29 @@
+{
+  "tables": {
+    "users": {
+      "columns": {
+        "user_id": { "type": "string", "nullable": false },
+        "created_at": { "type": "timestamp", "nullable": false }
+      }
+    },
+    "events": {
+      "columns": {
+        "user_id": { "type": "string", "nullable": false },
+        "event_type": { "type": "string", "nullable": false },
+        "event_time": { "type": "timestamp", "nullable": false }
+      }
+    }
+  },
+  "metrics": {
+    "daily_active_users": {
+      "depends_on": [
+        { "table": "events", "columns": ["user_id", "event_time"] }
+      ]
+    },
+    "signups": {
+      "depends_on": [
+        { "table": "users", "columns": ["user_id", "created_at"] }
+      ]
+    }
+  }
+}
