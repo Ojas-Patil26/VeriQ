@@ -59,10 +59,16 @@ def get_metric_timeseries(
 def detect_metric_anomalies(
     metric_name: str,
     window_size: int = 14,
-    z_threshold: float = 3.0,
+    z_threshold: float = 2.0,
 ) -> Dict[str, Any]:
     """
     Tool: Simple anomaly detection using rolling z-scores.
+
+    A point is flagged as an anomaly if:
+
+        |z_score| >= z_threshold
+
+    where z_score is computed against a rolling mean/std with the given window_size.
     """
     df = pd.read_csv(METRICS_FILE, parse_dates=["date"])
 
@@ -72,25 +78,29 @@ def detect_metric_anomalies(
             "message": f"Metric '{metric_name}' not found. Please call list_metrics first.",
         }
 
+    # Sort by date and prepare the value series
     df = df.sort_values("date")
     df["value"] = df[metric_name].astype(float)
 
+    # Rolling statistics
     df["rolling_mean"] = df["value"].rolling(window=window_size).mean()
     df["rolling_std"] = df["value"].rolling(window=window_size).std()
 
+    # z-score
     df["z_score"] = (df["value"] - df["rolling_mean"]) / df["rolling_std"]
 
     anomalies: List[Dict[str, Any]] = []
     for _, row in df.iterrows():
-        if pd.isna(row["z_score"]):
+        z = row["z_score"]
+        if pd.isna(z):
             continue
-        if abs(row["z_score"]) >= z_threshold:
+        if abs(z) >= z_threshold:
             anomalies.append(
                 {
                     "date": row["date"].date().isoformat(),
                     "value": float(row["value"]),
-                    "z_score": float(row["z_score"]),
-                    "direction": "high" if row["z_score"] > 0 else "low",
+                    "z_score": float(z),
+                    "direction": "high" if z > 0 else "low",
                 }
             )
 
@@ -102,3 +112,4 @@ def detect_metric_anomalies(
         "n_anomalies": len(anomalies),
         "anomalies": anomalies,
     }
+
