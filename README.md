@@ -2,24 +2,24 @@
 
 VeriQ is a multi-agent data quality assistant that monitors product metrics, detects anomalies, and suggests likely root causes. It is built with the Google Agent Development Kit (ADK) and Gemini models as part of the **Google AI Agents Intensive (Nov 10–14, 2025) Capstone Project**.
 
-> **Track fit:** Enterprise Agents / Agents for Good  
+> **Track fit:** Enterprise Agents  
 > **Core idea:** Help teams trust their dashboards by catching data issues early and explaining *why* they happened.
 
 ---
 
 ## 1. Problem & Motivation
 
-Modern products rely heavily on dashboards and analytics to drive decisions. But:
+Modern products rely heavily on dashboards and analytics to drive decisions. But in most real stacks:
 
-- Pipelines break silently.
-- Schema changes ripple through metrics.
-- Dashboards look “off” and no one knows why.
+- Pipelines break silently.  
+- Schema changes ripple through metrics in subtle ways.  
+- Dashboards look “off” and no one is sure whether it’s real or a data bug.  
 - Engineers lose hours manually checking queries, logs, and recent changes.
 
-This creates **hidden risk**: leaders may make decisions based on incorrect or stale data.
+This creates **hidden risk**: leaders may make decisions based on incorrect, stale, or incomplete data.
 
 **VeriQ** addresses this by acting as a *data quality co-pilot*:  
-it continuously inspects metrics, flags unusual behavior, and suggests plausible root causes using schema and changelog context.
+it inspects metrics, flags unusual behavior, and suggests plausible root causes using schema and changelog context, all through a conversational interface.
 
 ---
 
@@ -27,66 +27,84 @@ it continuously inspects metrics, flags unusual behavior, and suggests plausible
 
 VeriQ is implemented as a **multi-agent system** on top of the ADK:
 
-- A **root coordinator agent** (`data_quality_guardian`) that talks to the user and orchestrates sub-agents.
+- A **root coordinator agent** (`data_quality_guardian`) that:
+  - Talks to the user.
+  - Routes requests to specialized helper agents.
+  - Aggregates their outputs into clean, readable markdown.
+
 - Specialized sub-agents for:
-  - Metric catalog & lineage
-  - Anomaly detection
-  - Root-cause hypothesis generation
-  - Human-readable incident reporting
+  - Metric catalog & lineage.
+  - Anomaly detection.
+  - Root-cause hypothesis generation.
+  - Human-readable incident reporting.
 
-Under the hood, agents use **structured tools** that read from:
+Under the hood, agents use **structured tools** that read from local demo data:
 
-- A synthetic **metrics time series** (`data/metrics_sample.csv`)
-- A simple **schema & lineage description** (`data/schema_sample.json`)
-- A **change log** with recent schema/pipeline changes (`data/changelog_sample.json`)
+- A synthetic **metrics time series** – `data/metrics_sample.csv`  
+- A simple **schema & lineage description** – `data/schema_sample.json`  
+- A **change log** of recent schema / pipeline changes – `data/changelog_sample.json`  
 
-This design mirrors a realistic analytics environment (e.g., a startup’s product metrics), but using lightweight local files for the capstone.
+This design mirrors a realistic analytics environment (e.g., a startup’s product metrics) while remaining lightweight and fully local for this capstone.
 
 ---
 
 ## 3. Key Features (Course Concepts)
 
-VeriQ demonstrates several concepts from the AI Agents Intensive:
+VeriQ demonstrates several core concepts from the AI Agents Intensive:
 
 - ✅ **Multi-agent architecture**
-  - Root coordinator + 4 specialized LLM agents.
+  - One root coordinator agent.
+  - Four specialized helper agents with focused responsibilities.
+
 - ✅ **Tools**
   - Custom tools for metrics, schema, and changelog access:
     - `list_metrics`, `get_metric_timeseries`, `detect_metric_anomalies`
     - `get_schema_summary`, `get_metric_lineage`, `get_recent_changes`
-- ✅ **Context / structured outputs**
-  - Agents return structured JSON-like data where useful (e.g. anomaly lists, hypotheses).
-- ✅ **Clear separation of concerns**
-  - Each agent has a focused responsibility, making it easy to extend (e.g. adding evaluation, memory, or deployment later).
 
-You can extend this base to add:
+- ✅ **Context and structured outputs**
+  - Tools return structured dicts that agents can reason over.
+  - Agents often respond with markdown + optional JSON style snippets for clarity and machine readability.
 
-- Sessions & memory
-- Observability & logging
-- Agent evaluation
-- Cloud deployment (Cloud Run / Agent Engine)
+- ✅ **Separation of concerns**
+  - Clear split between:
+    - Data layer (CSV/JSON under `data/`)
+    - Tools layer (`tools/*.py`)
+    - Agent orchestration (`agent.py`)
+
+This base can be extended with:
+
+- Sessions & memory (e.g. remembering past incidents).
+- Observability, logging, and evaluation.
+- Cloud deployment via Vertex AI Agent Engine or Cloud Run.
 
 ---
 
 ## 4. Architecture
 
-![alt text](image.png)
+![VeriQ Architecture](image.png)
 
 ### 4.1 Agent Roles
 
-All agents live in `agent.py`.
+All agents are defined in `agent.py`.
 
-|         Agent Name        |                      Role                                         |
-|---------------------------|-------------------------------------------------------------------|
-| `data_quality_guardian`   | Root agent (VeriQ coordinator) – user-facing, orchestrates others |
-| `ingestion_agent`         | Lists metrics, inspects basic metric + lineage context            |
-| `anomaly_detection_agent` | Runs anomaly detection on a single metric                         |
-| `root_cause_agent`        | Proposes likely root causes using schema + changelog              |
-| `incident_report_agent`   | Turns findings into a clean incident report                       |
+| Agent Name               | Role                                                                 |
+|--------------------------|----------------------------------------------------------------------|
+| `data_quality_guardian`  | Root agent (VeriQ coordinator); user-facing; orchestrates sub-agents |
+| `ingestion_agent`        | Lists metrics; provides time-series and lineage context              |
+| `anomaly_detection_agent`| Detects anomalies in a single metric’s time series                   |
+| `root_cause_agent`       | Suggests likely root causes using schema + changelog data           |
+| `incident_report_agent`  | Produces a clean, readable incident report                          |
 
-### 4.2 Tools
+#### Root Coordinator: `data_quality_guardian`
 
-Tools live under `tools/`.
+- The only agent that talks directly to the user.
+- Interprets user intent and decides whether to:
+  - List available metrics.
+  - Run anomaly detection on a metric.
+  - Explore possible root causes.
+  - Generate an incident-style summary.
+
+It calls helper agents as sub-agents and hides internal complexity behind a simple conversational experience.
 
 #### `tools/metrics_tools.py`
 
