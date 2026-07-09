@@ -1,0 +1,10 @@
+venv/
+frontend/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+.git/
+.DS_Store
+image.png
+*.log

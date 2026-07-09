@@ -11,7 +11,7 @@ from .tools.schema_tools import (
     get_recent_changes,
 )
 
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = "gemini-2.5-flash"
 
 # 1) Ingestion & Catalog Agent
 ingestion_agent = LlmAgent(
@@ -138,7 +138,7 @@ root_agent = LlmAgent( name="data_quality_guardian",
         "to analyze data quality and then explains the results to the user."
     ),
     instruction=(
-        "You are the main coordinator agent "
+        "You are the main coordinator agent for VeriQ, a data quality assistant.\n\n"
         "Routing rules (important):\n"
         "- If the user asks to list, show, or see available metrics (for example,\n"
         "  'list the available metrics', 'what metrics do you have', or anything\n"

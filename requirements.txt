@@ -1,2 +1,8 @@
-google-adk
-pandas
+google-adk==1.19.0
+pandas==2.3.3
+fastapi==0.118.3
+uvicorn==0.38.0
+python-dotenv==1.2.1
+python-multipart==0.0.20
+fpdf2==2.8.7
+matplotlib==3.11.0

@@ -114,8 +114,9 @@ It calls helper agents as sub-agents and hides internal complexity behind a simp
 - `get_metric_timeseries(metric_name, start_date=None, end_date=None)`:  
   Returns a list of `{date, value}` points for the selected metric.
 
-- `detect_metric_anomalies(metric_name, window_size=14, z_threshold=3.0)`:  
-  Uses a rolling mean/std to compute z-scores and flags points where  
+- `detect_metric_anomalies(metric_name, window_size=14, z_threshold=2.0)`:  
+  Uses a time-based rolling mean/std (current point excluded from its own
+  window) to compute z-scores and flags points where
   `abs(z_score) >= z_threshold`. Returns:
   ```jsonc
   {
@@ -130,3 +131,55 @@ It calls helper agents as sub-agents and hides internal complexity behind a simp
       }
     ]
   }
+  ```
+
+---
+
+## 5. Web app
+
+VeriQ ships with a full web product on top of the agents:
+
+- **FastAPI backend** (`api.py`) — REST endpoints (`/api/metrics`,
+  `/api/timeseries`, `/api/anomalies`, `/api/summary`), CSV upload with
+  validation, a streaming chat endpoint (`/api/chat`, SSE), and **automated
+  PDF data quality reports** (`/api/report/pdf`, via `report.py`).
+- **React dashboard** (`frontend/`) — time-series charts with anomalies
+  flagged, dataset health cards, adjustable detection window / z-threshold,
+  CSV upload with instant re-analysis, and a streaming chat panel wired to
+  the multi-agent pipeline. Works with **any** metrics CSV that has a date
+  column and numeric columns.
+
+### Run locally
+
+Backend (Python 3.13):
+
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # add your GOOGLE_API_KEY
+python api.py          # http://localhost:8080
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173 (proxies /api to :8080)
+```
+
+## 6. Deployment (Railway backend + Vercel frontend)
+
+**Backend → Railway** (Dockerfile + `railway.toml` included):
+
+1. Push the repo to GitHub and create a new Railway project from it.
+2. Railway detects the Dockerfile; set environment variables:
+   - `GOOGLE_API_KEY` — your Gemini key
+   - `CORS_ORIGINS` — your Vercel URL (e.g. `https://veriq.vercel.app`)
+3. Deploy; note the public URL (health check at `/health`).
+
+**Frontend → Vercel**:
+
+1. Import the repo in Vercel and set the **root directory** to `frontend/`.
+2. Set env var `VITE_API_URL` to the Railway URL (no trailing slash).
+3. Deploy. If you change the Vercel domain, update `CORS_ORIGINS` on Railway.

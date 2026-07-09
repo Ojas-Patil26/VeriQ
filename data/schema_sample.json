@@ -24,6 +24,11 @@
       "depends_on": [
         { "table": "users", "columns": ["user_id", "created_at"] }
       ]
+    },
+    "revenue": {
+      "depends_on": [
+        { "table": "events", "columns": ["user_id", "event_type", "event_time"] }
+      ]
     }
   }
 }
