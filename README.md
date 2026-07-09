@@ -46,6 +46,8 @@ Under the hood, agents use **structured tools** that read from local demo data:
 
 This design mirrors a realistic analytics environment (e.g., a startup’s product metrics) while remaining lightweight and fully local for this capstone.
 
+The tools are not hardcoded to this sample dataset, though — any CSV with a date column and at least one numeric column works. When a user uploads their own file through the dashboard, schema and lineage info is auto-inferred from the CSV structure instead of read from the bundled JSON files, so the same agents work against arbitrary metrics data.
+
 ---
 
 ## 3. Key Features (Course Concepts)
@@ -71,6 +73,12 @@ VeriQ demonstrates several core concepts from the AI Agents Intensive:
     - Tools layer (`tools/*.py`)
     - Agent orchestration (`agent.py`)
 
+- ✅ **Dynamic, schema-agnostic data layer**
+  - Any CSV with a date column and numeric columns works — not just the
+    bundled sample. `tools/data_manager.py` tracks the active source
+    (sample vs. uploaded file) and `tools/schema_tools.py` auto-infers
+    schema for uploads with no hardcoded metric names.
+
 This base can be extended with:
 
 - Sessions & memory (e.g. remembering past incidents).
@@ -81,7 +89,13 @@ This base can be extended with:
 
 ## 4. Architecture
 
-![VeriQ Architecture](image.png)
+![VeriQ Architecture](architecture.svg)
+
+The diagram reflects the current system: a React dashboard talks to the
+FastAPI backend over REST + SSE. Most dashboard reads hit `tools/` directly
+(no LLM call); only the chat panel goes through the ADK `Runner` and the
+five-agent pipeline. PDF report generation (`report.py`) is also
+deterministic — it reads the same tools layer but never calls the model.
 
 ### 4.1 Agent Roles
 
@@ -109,7 +123,8 @@ It calls helper agents as sub-agents and hides internal complexity behind a simp
 #### `tools/metrics_tools.py`
 
 - `list_metrics()`:  
-  Reads `metrics_sample.csv`, returns available metric names.
+  Reads the active dataset (bundled sample or uploaded CSV) and returns its
+  numeric columns as available metric names.
 
 - `get_metric_timeseries(metric_name, start_date=None, end_date=None)`:  
   Returns a list of `{date, value}` points for the selected metric.
